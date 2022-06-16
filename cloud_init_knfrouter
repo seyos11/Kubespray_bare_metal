@@ -1,0 +1,11 @@
+#!/bin/bash
+
+/usr/share/openvswitch/scripts/ovs-ctl start
+ovs-vsctl add-br br1
+/sbin/ifconfig br1 192.168.255.1/24
+ovs-vsctl add-port br1 vxlan1 -- set interface vxlan1 type=vxlan options:remote_ip=192.168.16.1
+ip route del default
+ip route add 0.0.0.0/0 via 10.2.3.254 
+
+/usr/bin/vnx_config_nat br1 net1
+

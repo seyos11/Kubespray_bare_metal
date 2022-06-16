@@ -1,0 +1,79 @@
+---
+- name: Kubernetes Apps | Lay Down RBAC for helm-wrapper function
+  template: { src: "{{ item }}.j2", dest: "{{ kube_config_dir }}/{{ item }}" }
+  with_items: ["rbac.yml"]
+  register: "rendering"
+  when:
+    - "inventory_hostname == groups['kube-master'][0]"
+
+- name: Kubernetes Apps | Install and configure RBAC for helm-wrapper function
+  kube:
+    name: "Helm-wrapper rbac"
+    kubectl: "{{ bin_dir }}/kubectl"
+    filename: "{{ kube_config_dir }}/{{ item.item }}"
+    state: "{{ item.changed | ternary('latest','present') }}"
+  with_items: "{{ rendering.results }}"
+  when:
+    - "inventory_hostname == groups['kube-master'][0]"
+
+- name: Copy helm-wrapper function code
+  copy:
+    src: files/helm-wrapper/
+    dest: /root/
+  when:
+    - "inventory_hostname == groups['kube-node'][0]"
+
+- name: Install faas-cli in a worker node
+  script: files/faas-cli
+  when:
+      - "inventory_hostname == groups['kube-node'][0]"
+
+- name: Retrieve OpenFaaS admin password
+  shell: kubectl -n default get secret basic-auth -o jsonpath="{.data.basic-auth-password}" | base64 --decode
+  register: openfaas_password
+  when:
+      - "inventory_hostname == groups['kube-master'][0]"
+
+- name: Set openfaas_password fact
+  set_fact:
+    openfaas_password: "{{ openfaas_password.stdout }}"
+  when:
+      - "inventory_hostname == groups['kube-master'][0]"
+
+- name: Retrieve OpenFaaS gateway Cluster IP
+  shell: "kubectl -n default get svc gateway -o jsonpath='{.spec.clusterIP}'"
+  register: openfaas_gateway
+  retries: 3
+  delay: 5
+  until: openfaas_gateway is not failed
+  ignore_errors: yes
+  when:
+      - "inventory_hostname == groups['kube-master'][0]"
+
+- name: Set openfaas_password fact
+  set_fact:
+    openfaas_gateway: "{{ openfaas_gateway.stdout }}:8080"
+  when:
+      - "inventory_hostname == groups['kube-master'][0]"
+
+- name: Template helm-wrapper function
+  template:
+    src: helm-wrapper.yml.j2
+    dest: /root/helm-wrapper.yml
+  when:
+    - "inventory_hostname == groups['kube-node'][0]"
+
+- name: Login with faas-cli
+  shell: "echo -n {{ hostvars[groups['kube-master'][0]]['openfaas_password'] }} | faas-cli login -g {{ hostvars[groups['kube-master'][0]]['openfaas_gateway'] }} -u admin --password-stdin"
+  register: login_status
+  retries: 3
+  delay: 5
+  until: login_status is not failed
+  ignore_errors: yes
+  when:
+      - "inventory_hostname == groups['kube-node'][0]"
+
+- name: Build and deploy helm-wrapper function
+  shell: faas-cli up -f helm-wrapper.yml
+  when:
+      - "inventory_hostname == groups['kube-node'][0]"

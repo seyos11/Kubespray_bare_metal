@@ -1,0 +1,15 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: grafana
+  namespace: default
+spec:
+  chart:
+    repository: https://kubernetes-charts.storage.googleapis.com
+    name: grafana
+    version: 5.1.2
+  values:
+    adminUser: luis
+    adminPassword: giros
+    service:
+      type: LoadBalancer

@@ -1,0 +1,43 @@
+---
+# Ansible for OpenEBS
+# Requires disk to already be formatted and mounted
+
+  vars:
+    namespace:            'openebs'
+    deploy:               'openebs-apiserver'
+    chart:                'openebs/openebs'
+    helm_name:            'openebs'
+  #connection: local
+
+  tasks:
+
+  - name: Check for OpenEBS DaemonSets
+    shell: "kubectl get deployment {{ deploy }} -n {{ namespace }} --no-headers=1"
+    register: check_openebs
+    ignore_errors: true
+
+  - name: Add Helm default repo
+    shell: "helm repo add openebs https://openebs.github.io/charts"
+    when: check_openebs.rc != 0
+
+  - name: Install OpenEBS with Helm package manager
+    shell: "helm install {{ helm_name }} {{ chart }} --namespace {{ namespace }} --create-namespace"
+    when: check_openebs.rc != 0
+
+  - name: Check for OpenEBS DaemonSets
+    shell: "kubectl get deployment {{ deploy }} -n {{ namespace }} --no-headers=1"
+    register: check_openebs_apiserver
+    retries: 36
+    delay: 1
+    until: check_openebs_apiserver.rc == 0
+
+  - name: Set default storage class
+    shell: "kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'"
+    when: check_openebs_apiserver.rc == 0
+    
+    
+    
+    
+        kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+

@@ -1,0 +1,25 @@
+vld:
+- name: mgmtnet
+  vim-network-name: osm-ext
+additionalParamsForVnf:
+- member-vnf-index: openldap
+  additionalParamsForKdu:
+  - kdu_name: ldap
+    additionalParams:
+      # replicaCount: 2  
+      service:
+        type: LoadBalancer
+        loadBalancerIP: '138.4.7.139' # MetalLB IP Address
+        ports:
+          - port: 8080
+            targetPort: 8080
+      adminPassword: osm4u
+      configPassword: osm4u
+      env:
+        LDAP_ORGANISATION: "Example Inc."
+        LDAP_DOMAIN: "example.org"
+        LDAP_BACKEND: "hdb"
+        LDAP_TLS: "true"
+        LDAP_TLS_ENFORCE: "false"
+        LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+

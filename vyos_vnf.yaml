@@ -1,0 +1,60 @@
+vnfd:
+  description: Gateway PNF
+  df:
+  - id: default-df
+    instantiation-level:
+    - id: default-instantiation-level
+      vdu-level:
+      - number-of-instances: 1
+        vdu-id: gateway_pdu
+    vdu-profile:
+    - id: gateway_pdu
+      min-number-of-instances: 1
+    lcm-operations-configuration:
+      operate-vnf-op-config:
+        day1-2:
+        - config-primitive:
+          - name: configure-remote
+            execution-environment-ref: vyos-config-ee
+            parameter:
+            - data-type: STRING
+              default-value: 0.0.0.0
+              name: magmaIP
+          id: hackfest_gateway_vnfd
+          execution-environment-list:
+          - id: vyos-config-ee
+            juju:
+              charm: vyos-config
+          config-access:
+            ssh-access:
+              default-user: osm
+              required: true
+          initial-config-primitive:
+          - name: config
+            execution-environment-ref: vyos-config-ee
+            parameter:
+            - name: ssh-username
+              value: osm
+            - name: ssh-password
+              value: osm2020
+            - name: ssh-hostname
+              value: <rw_mgmt_ip>
+            seq: 1
+  ext-cpd:
+  - id: gateway_public-ext
+    int-cpd:
+      cpd: eth0-int
+      vdu-id: gateway_pdu
+  id: hackfest_gateway_vnfd
+  mgmt-cp: gateway_public-ext
+  product-name: hackfest_gateway_vnfd
+  vdu:
+  - description: gateway_pdu
+    id: gateway_pdu
+    int-cpd:
+    - id: eth0-int
+      virtual-network-interface-requirement:
+      - name: eth0
+    pdu-type: gateway
+  version: '1.0'
+

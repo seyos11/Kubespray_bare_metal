@@ -1,0 +1,11 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://{{ hostvars[groups['kube-master'][0]]['openfaas_gateway'] }}
+functions:
+  helm-wrapper:
+    lang: python3
+    handler: ./helm-wrapper
+    image: localhost:5000/helm-wrapper:latest
+    annotations:
+      com.openfaas.serviceaccount: helm-wrapper

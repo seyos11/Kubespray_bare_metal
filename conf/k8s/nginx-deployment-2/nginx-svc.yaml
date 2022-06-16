@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx-service-2
+  labels:
+    app: my-nginx-2
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: my-nginx-2

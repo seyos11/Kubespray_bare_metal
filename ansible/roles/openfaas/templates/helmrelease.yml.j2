@@ -1,0 +1,14 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: openfaas
+  namespace: default
+spec:
+  chart:
+    repository: https://openfaas.github.io/faas-netes
+    name: openfaas
+    version: 5.8.4
+  values:
+    functionNamespace: openfaas-fn
+    generateBasicAuth: true
+    serviceType: LoadBalancer
