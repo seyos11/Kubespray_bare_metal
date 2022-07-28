@@ -1,5 +1,7 @@
 # Receta para el despliegue de Kubernetes con Kubespray
 
+Esta receta está basada en la de Ignacio Domínguez Martínez-Casanueva. La original está basada en un escenario sobre vnx. La idea es llevar este despliegue a un clúster físico donde levantar varios nodos de Kubernetes. El proyecto original se encuentra alojado en: https://github.com/giros-dit/vnx-kubespray
+
 En primer lugar nos bajamos un zip donde se encuentran todos los ficheros que permiten el despliegue de kubespray. En él se incluyen tanto los ficheros para realizar el despliegue con ansible a la 
 par que contiene un fichero xml en VNX que permite lanzar instancias virtuales en las que desplegar kubernetes. Tal caso no es el nuestro, ya que disponemos de 4 máquinas en las que realizar este despliegue.
 No obstante, solo utilizaremos 3 máquinas: 1 nodo máster o de control y dos workers donde se alojarán los contenedores. La otra máquina se empleará para alojar OSM y conectarlo al clúster de Kubespray.
